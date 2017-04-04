@@ -1,2 +1,2 @@
 # Scripts
-This repository contains all scripts for faster process by me.
+This repository contains all scripts to make work easier.
