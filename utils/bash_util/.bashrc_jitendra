@@ -1,0 +1,82 @@
+LAST_MODIFIED_DATE="12.06.2017"
+
+function rdif()
+{
+	if [ $# -eq 1 ] ; then
+		cvs diff -pubB >$1.diff;sed -i '/^?.*/d' $1.diff; vi $1.diff
+	elif [ $# -eq 3 ] ; then
+		cvs diff -pubB -r $2 -r $3>$1.diff;sed -i '/^?.*/d' $1.diff; vi $1.diff
+	else
+		echo "Usages:  rdif diff_file_name [tag1] [tag2]"
+	fi
+}
+
+function changes_file()
+{
+	if [ $# -eq 1 ] ; then
+#		cvs diff -pubB 1>tmp 2>/dev/null;grep "Index:" tmp |sed 's/Index: //g'| tr '\n' ' ' >$1;rm -f tmp;cat $1
+		cvs diff -pubB  2>/dev/null|grep "Index:" |sed 's/Index: //g'| tr '\n' ' ' >$1;cat $1;echo ""
+	else
+		cvs diff -pubB  2>/dev/null|grep "Index:" |sed 's/Index: //g'| tr '\n' ' ';echo ""
+		#cvs diff -pubB 1>tmp 2>/dev/null;grep "Index:" tmp |sed 's/Index: //g'| tr '\n' ' ';rm -f tmp;echo ""
+		#echo "Usages:  changes_file file_name"
+	fi
+	
+}
+
+function add_keys()
+{
+	IP=0
+	USER=''
+	RSA_PUB_FILE=id_rsa.pub
+	SSH_CONF_DIR=$HOME/.ssh
+	if [ $# -eq 1 ]
+	then
+		IP=$1
+		USER=root
+	elif [ $# -eq 2 ]
+	then
+		IP=$1
+		USER=$2
+	else
+		echo "Usages: add_keys <IP> {user_name} "
+		echo "user_name is optonal if not present then By-default 'root'"
+		return
+	fi
+	if [ ! -f  $SSH_CONF_DIR/$RSA_PUB_FILE ]
+	then
+		echo "Public key is not there !! Create a Key Pair"
+		echo -n "Do you want to create one now(y/n):"
+		read ans
+		if [  "$ans" = "Y"  -o  "$ans" = "y"  ]
+		then
+			ssh-keygen -t rsa
+		else
+			return
+		fi
+	fi
+	ssh $USER@$IP mkdir -p .ssh
+	cat $SSH_CONF_DIR/$RSA_PUB_FILE | ssh $USER@$IP 'cat >> .ssh/authorized_keys'
+}
+
+function clean_keys()
+{
+		host=''
+		if [ $# -ge 1 ]
+		then
+				host=$1
+				sed -i "/^$host.*/d" $HOME/.ssh/known_hosts
+				echo "ssh key for $host cleaned"
+
+		else
+			cat /dev/null >$HOME/.ssh/known_hosts 
+			return
+		fi
+
+	
+}
+
+function check_in()
+{
+	echo "This fucntion need to work on"
+}
