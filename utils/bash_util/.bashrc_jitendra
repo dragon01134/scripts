@@ -80,3 +80,30 @@ function check_in()
 {
 	echo "This fucntion need to work on"
 }
+
+function addProxy() 
+{
+	SSH_CONFIG_FILE=$HOME/.ssh/config
+	DEFAULT_ROUTER_IP=10.2.5.156
+	router_ip=$DEFAULT_ROUTER_IP
+	found=0
+
+	[ $# -eq 0 ] && echo "Uasges:$0 host_ip <router_ip> " && return
+	[ $# -eq 1 ] && host_ip=$1
+	[ $# -eq 2 ] && host_ip=$1 && router_ip=$2
+
+	for host in $(awk '/^Host/{print $2}' $SSH_CONFIG_FILE)
+	do
+		[ $host = $host_ip ] && found=1
+	done
+
+	if [ $found -eq 0 ]
+	then
+		echo "Adding Host: $host_ip RouterIP:$router_ip"	
+		echo " " >>$SSH_CONFIG_FILE
+		echo "Host $host_ip" >>$SSH_CONFIG_FILE
+		echo "ProxyCommand ssh root@$router_ip netcat $host_ip 22" >>$SSH_CONFIG_FILE
+	fi
+}
+
+
