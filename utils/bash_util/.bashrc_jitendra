@@ -1,5 +1,8 @@
 LAST_MODIFIED_DATE="12.06.2017"
 
+banner Welcome
+export PS1="\033[01;35m\W\033[01;36m#\033[01;00m"
+
 function rdif()
 {
 	if [ $# -eq 1 ] ; then
@@ -107,3 +110,164 @@ function addProxy()
 }
 
 
+#BackUp functions
+
+function bkp()
+{
+	BKP_FILE_LIST=${PWD}/.bkp_list
+	BKP_PATH=${PWD}/backup
+	BKP_DIR=$BKP_PATH/$(date +%s)
+	mkdir -p $BKP_DIR
+	while read -r line 
+	do
+		if [  -f $line ] ;then
+			echo "Backing Up $line"
+			cp --parents $line $BKP_DIR
+		else
+			echo "$line file is not exists"
+		fi
+	done<$BKP_FILE_LIST
+
+	cp $BKP_FILE_LIST $BKP_DIR
+
+}
+
+function bkp_add()
+{
+	BKP_FILE_LIST=${PWD}/.bkp_list
+	BKP_PATH=${PWD}/backup
+	match=0
+	[ $# -eq 0 ] && echo "give some file name" && return 0
+	for file in $@
+	do
+		touch $BKP_FILE_LIST
+		while read -r line 
+		do
+			if [ $line == $file ]
+			then
+				match=1
+				echo "$file is already in backup list "
+			fi
+		done<$BKP_FILE_LIST
+		if [ $match -eq 0 ]
+		then
+			echo "Adding $file to backup list"
+			echo $file >>$BKP_FILE_LIST
+		fi
+		match=0
+	done
+}
+
+function bkp_clean()
+{
+	BKP_FILE_LIST=${PWD}/.bkp_list
+	BKP_PATH=${PWD}/backup
+	echo -n "Do you really want to delete all backup(y/n)[n]: "
+	read ans
+	if [ ! -z $ans ] && [  $ans = "y" ]
+	then
+		echo -n "Deleting all Backup : "
+		rm -rf $BKP_PATH
+		echo "Done"
+	fi
+}
+
+function bkp_list()
+{
+	BKP_FILE_LIST=${PWD}/.bkp_list
+	BKP_PATH=${PWD}/backup
+	printf "%-29s| %-28s\n" "TimeStamp" "File"
+	echo "------------------------------------------------------------"
+	for d_ate in $(ls backup)
+	do
+		date_str=$(date --date="@$d_ate")
+		printf "%-29s|%-28s\n" "$date_str" "$(cat $BKP_PATH/$d_ate/.bkp_list|tr '\n' ' ')" 
+	done
+}
+
+#BackUp functions ends---------------------------------------------------------------------
+
+
+## TODO-Look into it
+function upnotify()
+{
+	is_sent="no"
+	if [ $# -ge 1 ]
+	then
+	while [ 1 ]
+	do
+		ping_res=`ping -c 1 $1`
+		if [ $? -eq 0 ]
+		then
+			if [ $is_sent == "no" ]
+			then
+				notify-send "$1 is UP "
+				is_sent="yes"
+			fi
+		else
+			if [ $is_sent == "no" ]
+			then
+				notify-send "$1 is UP "
+				is_sent="yes"
+			fi
+		fi
+	done
+	fi
+}
+
+function downnotify()
+{
+	is_sent="no"
+	if [ $# -ge 1 ]
+	then
+	while [ 1 ]
+	do
+		ping_res=`ping -c 1 $1`
+		if [ $? -eq 0 ]
+		then
+			if [ $is_sent == "no" ]
+			then
+				notify-send "$1 is UP "
+				is_sent="yes"
+			fi
+		else
+			echo -n "$1 is down at "
+			date
+			notify-send "$1 is Down "
+		fi
+	done
+	fi
+	
+}
+
+function log()
+{
+	IP=""
+	USER=""
+	if [ $# -eq 1 ]
+	then	
+		echo "$1" | grep '.' >/dev/null 2>&1
+		if [ $? -eq 0 ]
+		then
+			IP=$1
+		elif [ "$1" -gt 155 -a "$1" -lt 159 ]
+		then
+			IP="10.2.5.$1"
+		fi
+		USER=root
+	elif [ $# -eq 2 ]
+	then
+		IP=$1
+		USER=$2
+	else
+		echo "Usages: log <IP> {user_name} "
+		echo "user_name is optonal if not present then bydefault 'root'"
+		return
+	fi
+	ssh $USER@$IP
+	ping $IP
+	
+}
+
+
+## TODO-Look into it------------------ends
