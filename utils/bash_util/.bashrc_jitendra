@@ -28,8 +28,8 @@ function changes_file()
 }
 function SetTerminal()
 {
-	if [ $# -gt 1 ] ; then
-		export PROMPT_COMMAND='echo -ne "\033]0;$1\007"'	
+	if [ $# -ge 1 ] ; then
+		export PROMPT_COMMAND='echo -ne "\033]0;'${1}'\007"'	
 	else
 		echo "Please give a string to set terminal Title"
 		echo "Usages: SetTerminal <String>"
